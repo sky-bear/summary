@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h3>测试</h3>
+  </body>
+  <script>
+    function require(src, onload) {
+      const doc = document
+      const head =
+        doc.head || doc.getElementsByTagName('head')[0] || doc.documentElement
+      const scriptDom = doc.createElement('script')
+      scriptDom.type = 'text/javascrip'
+      scriptDom.src = src
+      scriptDom.onload
+      node.async = true
+      scriptDom.onerror = function () {}
+      head.appendChild(scriptDom)
+    }
+  </script>
+</html>

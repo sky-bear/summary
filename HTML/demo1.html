@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .box {
+      }
+      .item {
+        display: inline-block;
+        width: 200px;
+        height: 300px;
+        border: 1px solid #ccc;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>HTML语义</h1>
+    <p>balah balah balah balah</p>
+    <h2>弱语义</h2>
+    <p>balah balah</p>
+    <h2>结构性元素</h2>
+    <p>balah balah</p>
+
+    <!-- <video id="mse" autoplay=true playsinline controls="controls">
+  <source src="https://h5player.bytedance.com/video/mp4/xgplayer-demo-720p.mp4" type="video/mp4">
+  你的浏览器不支持Video标签
+</video> -->
+
+    <div class="box">
+      <div class="item">
+        <button>点击</button>
+      </div>
+      <div class="item">
+        <button>点击</button>
+      </div>
+      <div>
+        <span class="car">购物车</span>
+      </div>
+    </div>
+  </body>
+  <script>
+    const buttonDom = document.querySelectorAll('button')
+    const carDom = document.querySelector('.car')
+    const carDomInfo = carDom.getClientRects()[0]
+    console.log(carDom.getClientRects())
+    const endPoint = [carDomInfo.left, carDomInfo.top]
+
+    Array.from(buttonDom).forEach(dom => {
+      dom.addEventListener('click', function (event) {
+        const startPoint = [event.clientX, event.clientY]
+        const path = flycart(startPoint, endPoint, 20)
+        console.log(this)
+        const Dom = this.cloneNode(true)
+
+        Dom.style.cssText = `position:fixed;left:${event.clientX}px;top:${event.clientY}px`
+        const id = `id_${parseInt(Math.random() * 1000)}`
+        Dom.id = id
+        this.parentNode.appendChild(Dom)
+        let index = 0
+        console.log(path)
+        let newDom
+        const timer = setInterval(() => {
+          if (!newDom) {
+            newDom = document.querySelector(`#${id}`)
+          }
+          console.log(newDom)
+          newDom.style.left = `${path[index][0]}px`
+          newDom.style.top = `${path[index][1]}px`
+          index += 1
+          if (index >= path.length - 1) {
+            clearInterval(timer)
+          }
+        }, 20)
+      })
+    })
+
+    function CreateDom() {}
+
+    /**
+     * 飞入购物车，轨迹点绘制
+     * @author
+     * @param {Array} start`在这里插入代码片`Point 起点clientX, clientY值 (必要)
+     * @param {Array} endPoint   终点clientX, clientY值 (必要)
+     * @param {number} point     点数          (必要)
+     * @param {number} h         抛物线向上高度(上抛运动)  (可选)
+     * @param {number} hclientX  当存在h情况下，达到最高点时候的clientX值
+     * @return {Array}  [ left ,top ] 值组成的数组
+     */
+    //  动画函数
+    function flycart(startPoint, endPoint, point, h = 0, hclientX) {
+      const xA = 0 // 横坐标起点
+      const yA = 0 // 纵坐标起点
+      /* x轴偏移量 */
+      const offsetX = startPoint[0]
+      /* y轴偏移量 */
+      const offsetY = startPoint[1]
+      /* B点横坐标 */
+      const xB = endPoint[0] - offsetX
+      /* B纵坐标 */
+      const yB = endPoint[1] - offsetY
+      /*
+    设置startPoint 为(0,0)点 , 此抛物线经过(0,0)点 ，可以推到出模型关系式 y =  ax^2 + bx 或者 y = ax^ 2
+    1 当存在 h 的情况，抛物线会y轴向上偏移 h, 此时的关系式 y = ax^2 + bx
+    2 当不存在h 的情况 ，抛物线startPoint为顶点， 此时关系式 y = ax^2
+    */
+      let a = 0
+      let b = 0
+      //  计算系数
+      function handerComputer() {
+        if (!h) {
+          a = yB / Math.pow(xB, 2)
+        } else {
+          // 最高点时x的坐标
+          const effectMaHx =
+            hclientX && hclientX > offsetX && hclientX < endPoint[0]
+          const maHx = effectMaHx ? hclientX - offsetX : (xB - xA) / 2
+          // 根据有数据可以得出 已知两个点, 求解y = ax^2 +bx
+          // 求解得
+          a = (yB / xB - h / maxHx) / (xB - maxHx)
+          /* 将 a 带入其中一个求解 b */
+          b = (yB - a * Math.pow(xB, 2)) / xB
+        }
+      }
+      /* 轨迹数组 */
+      const travelList = []
+      /* x 均等分 */
+      const averageX = (xB - xA) / point
+      //  处理直线运动
+      function handerLinearMotion(type) {
+        if (type === 'x') {
+          const averageY = (yB - yA) / point
+          for (let i = 1; i <= point; i++) {
+            travelList.push([offsetX, i * averageY + offsetY])
+          }
+        } else {
+          for (let i = 1; i <= point; i++) {
+            travelList.push([offsetX + i * averageX, offsetY])
+          }
+        }
+        return travelList
+      }
+      /* 当 xB的绝对值小于10的情况，我们看作Y轴直线运功    */
+      if (Math.abs(xB) < 10) {
+        return handerLinearMotion('X')
+      }
+      /*当 yB的绝对值小于10的情况，我们看作x轴直线运功  */
+      if (Math.abs(yB) < 10) {
+        return handerLinearMotion('Y')
+      }
+      handerComputer()
+      handleCanvas()
+      // 绘制路径
+      function handleCanvas() {
+        for (let i = 1; i <= point; i++) {
+          const currentX = averageX * i
+          const currentY = Math.pow(currentX, 2) * a + b * currentX - yA
+          travelList.push([currentX + offsetX, currentY + offsetY])
+        }
+      }
+      return travelList
+    }
+  </script>
+</html>
